@@ -2355,7 +2355,10 @@ export default function App() {
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("theme");
     if (saved !== null) return saved === "dark";
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    // Detect system theme preference
+    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    // If no preference detected, default to light mode
+    return prefersDark ?? false;
   });
   const [tab,setTab]             = useState("dashboard");
   const [auth,setAuth]           = useState(null);
@@ -2399,7 +2402,26 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem("theme", dark ? "dark" : "light");
+    // Apply or remove dark class from document
+    if (dark) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
   }, [dark]);
+
+  // Initialize theme on mount
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
+  }, []);
 
   useEffect(()=>{
     api("/auth/status").then(setAuth).catch(()=>setAuth({authenticated:false}));
