@@ -8,7 +8,7 @@ import os
 # Backend URL for OAuth callbacks and tracking pixels
 # Default: http://localhost:8000 (local dev)
 # Production: https://your-backend.onrender.com
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://email-automation-8lva.onrender.com")
 OAUTH_CALLBACK_URL = f"{BACKEND_URL}/auth/callback"
 
 # ─── Frontend Configuration ───────────────────────────────────────────────────

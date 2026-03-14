@@ -4,5 +4,4 @@
 
 # Environment variables for production build
 [build.environment]
-  # Update this after your backend is deployed on Render
-  # REACT_APP_API_URL = "https://your-backend.onrender.com"
+  REACT_APP_API_URL = "https://email-automation-8lva.onrender.com"
