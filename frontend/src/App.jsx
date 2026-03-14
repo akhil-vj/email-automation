@@ -764,7 +764,6 @@ function Compose({ auth, contacts, toast, setTab, onSendComplete, onTemplateUpda
   const [body, setBody]       = useState(initialBody);
   const [campaignName, setCampaignName] = useState("");
   const [campaignType, setCampaignType] = useState(initialType);
-  const [segment, setSegment]  = useState("");
   const [delay, setDelay]      = useState(2);
   const [rateLimit, setRateLimit] = useState(400);
   const [cc, setCc]            = useState("");
@@ -849,14 +848,6 @@ function Compose({ auth, contacts, toast, setTab, onSendComplete, onTemplateUpda
       toast(`Sent ${res.sent}/${res.total} · ${res.skipped_duplicates} duplicates skipped`);
     } catch(e) { toast(e.message,"error"); setProgress(null); }
     setSending(false);
-  };
-
-  const saveFollowUp = async (campaignId) => {
-    const validSteps = fuSteps.filter(s => s.subject && s.body);
-    if (!validSteps.length) return;
-    await api("/emails/followup", { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ original_campaign_id: campaignId, steps: validSteps, is_html: false }) });
-    toast(`${validSteps.length} follow-up step(s) scheduled`);
   };
 
   const previewWhatsApp = async () => {
@@ -1488,7 +1479,6 @@ function Templates({ toast, setTab, setComposeDraft, setEdit, templates, setTemp
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [selected, setSelected] = useState(null);
-  const cats = ["all",...new Set(templates.map(t=>t.category||"general"))];
 
   const del = async (id) => {
     await api(`/templates/${id}`,{method:"DELETE"});
@@ -1636,7 +1626,7 @@ function Settings({ auth, setAuth, toast }) {
           <>
             <div style={{background:"var(--amberbg)",border:"1px solid rgba(255,179,64,.22)",borderRadius:10,padding:"14px 16px",marginBottom:16,fontSize:13,color:"var(--text2)",lineHeight:1.75}}>
               <strong style={{color:"var(--amber)"}}>One-time setup (~15 min)</strong><br/>
-              1. <a href="https://console.cloud.google.com" target="_blank" style={{color:"var(--accent)"}}>console.cloud.google.com</a> → New Project → Enable <strong>Gmail API</strong><br/>
+              1. <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" style={{color:"var(--accent)"}}>console.cloud.google.com</a> → New Project → Enable <strong>Gmail API</strong><br/>
               2. Create <strong>OAuth 2.0 Client ID</strong> (Web app) · Redirect: <code style={{background:"var(--bg4)",padding:"1px 5px",borderRadius:4,fontSize:12}}>http://localhost:8000/auth/callback</code><br/>
               3. Download JSON → See <strong>Upload Credentials</strong> below<br/>
               4. Click Connect
@@ -2276,7 +2266,6 @@ function createGalaxyHelpers(canvasRef, dbRef, starRef, flashRef, galaxyDataRef,
     
     startGalaxyLoop() {
       const gd = galaxyDataRef.current;
-      const canvas = canvasRef.current;
       const startTime = performance.now();
       
       const loop = (ts) => {
@@ -2476,7 +2465,7 @@ export default function App() {
         galaxy.turnOff();
       }
     }
-  }, [dark, animating]);
+  }, [dark, animating, cowboyOn, galaxyOn]);
 
   // Logo click handler for galaxy/cowboy toggle based on theme
   useEffect(()=>{
