@@ -1576,7 +1576,7 @@ function Settings({ auth, setAuth, toast }) {
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await api("/auth/credentials/upload", { method: "POST", body: form });
+      await api("/auth/credentials/upload", { method: "POST", body: form });
       toast("✓ Credentials uploaded! Ready to connect Gmail", "success");
       
       // Auto-check auth status after upload
