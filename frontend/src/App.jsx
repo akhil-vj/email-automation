@@ -2370,13 +2370,18 @@ export default function App() {
 
   // Actual dark state based on mode
   const [dark, setDark] = useState(() => {
+    // Clear old theme key if it exists
+    localStorage.removeItem("theme");
+    
     const saved = localStorage.getItem("themeMode");
     const mode = saved || "system";
     
     if (mode === "dark") return true;
     if (mode === "light") return false;
     // system mode: detect from OS
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
+    console.log("System theme detected - prefersDark:", prefersDark);
+    return prefersDark;
   });
   const [tab,setTab]             = useState("dashboard");
   const [auth,setAuth]           = useState(null);
@@ -2432,7 +2437,7 @@ export default function App() {
     }
   }, [themeMode]);
 
-  // Apply dark class to document
+  // Apply dark class to document and update immediately
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add('dark');
@@ -2442,6 +2447,30 @@ export default function App() {
       document.body.classList.remove('dark');
     }
   }, [dark]);
+
+  // Initialize theme on first mount
+  useEffect(() => {
+    const mode = localStorage.getItem("themeMode") || "system";
+    let isDark = false;
+    
+    if (mode === "dark") {
+      isDark = true;
+    } else if (mode === "light") {
+      isDark = false;
+    } else {
+      // system mode
+      isDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    }
+    
+    // Apply immediately
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
+  }, []);
 
   // Listen for system theme changes when in system mode
   useEffect(() => {
