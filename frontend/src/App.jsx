@@ -1661,6 +1661,7 @@ function Settings({ auth, setAuth, toast, themeMode, setThemeMode }) {
             const modes = [null, "light", "dark"];
             const currentIndex = modes.indexOf(themeMode);
             const nextMode = modes[(currentIndex + 1) % modes.length];
+            console.log("Theme button clicked - current:", themeMode, "next:", nextMode);
             setThemeMode(nextMode);
           }} style={{minWidth:100,display:"flex",alignItems:"center",justifyContent:"center"}}>
             {themeMode === null && <><Ic p={I.globe} s={14} style={{marginRight:6}}/> System </>}
