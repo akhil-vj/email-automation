@@ -764,6 +764,7 @@ function Compose({ auth, contacts, toast, setTab, onSendComplete, onTemplateUpda
   const [body, setBody]       = useState(initialBody);
   const [campaignName, setCampaignName] = useState("");
   const [campaignType, setCampaignType] = useState(initialType);
+  const [segment, setSegment]  = useState(""); // eslint-disable-line no-unused-vars
   const [delay, setDelay]      = useState(2);
   const [rateLimit, setRateLimit] = useState(400);
   const [cc, setCc]            = useState("");
