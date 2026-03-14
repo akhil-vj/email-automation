@@ -1,8 +1,10 @@
 ﻿import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
+import CONFIG from "./config";
 
 const ThemeCtx = createContext();
 const useTheme = () => useContext(ThemeCtx);
-const API = "http://localhost:8000";
+
+const API = CONFIG.API_URL;
 
 const api = async (path, opts = {}) => {
   const r = await fetch(API + path, opts);
@@ -1583,10 +1585,23 @@ function Settings({ auth, setAuth, toast }) {
     try {
       const form = new FormData();
       form.append("file", file);
-      await api("/auth/credentials/upload", { method: "POST", body: form });
-      toast("Credentials uploaded successfully ✓");
+      const res = await api("/auth/credentials/upload", { method: "POST", body: form });
+      toast("✓ Credentials uploaded! Ready to connect Gmail", "success");
+      
+      // Auto-check auth status after upload
+      setTimeout(async () => {
+        try {
+          const authStatus = await api("/auth/status");
+          if (authStatus.authenticated) {
+            setAuth(authStatus);
+            toast(`Connected as ${authStatus.email} ✓`);
+          }
+        } catch (e) {
+          // Auth check failed - user needs to click Connect Gmail
+        }
+      }, 1000);
     } catch(e) {
-      toast(e.message, "error");
+      toast(e.message || "Upload failed", "error");
     }
   };
   const handleLogin = async () => {

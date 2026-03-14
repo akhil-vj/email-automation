@@ -14,24 +14,25 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 import pickle, threading
 
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
+# Import configuration
+from config import (
+    BACKEND_URL, OAUTH_CALLBACK_URL, FRONTEND_URL, ALLOWED_ORIGINS,
+    GMAIL_SCOPES, TOKEN_FILE, CREDENTIALS_FILE, CAMPAIGNS_FILE, TEMPLATES_FILE,
+    SENT_HASHES_FILE, TRACKING_FILE, DEBUG
 )
 
-SCOPES = [
-    "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/gmail.modify",
-]
-TOKEN_FILE        = "token.pickle"
-CREDENTIALS_FILE  = "credentials.json"
-CAMPAIGNS_FILE    = "campaigns.json"
-TEMPLATES_FILE    = "templates.json"
-SENT_HASHES_FILE  = "sent_hashes.json"   # duplicate filtering
-TRACKING_FILE     = "tracking.json"      # open tracking pixels
+app = FastAPI()
+
+# CORS configuration - from config.py
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+SCOPES = GMAIL_SCOPES
 
 # ── Rate-limiter state (in-memory) ────────────────────────────────────────────
 _rate_lock = threading.Lock()
@@ -84,7 +85,7 @@ def auth_login():
     if not os.path.exists(CREDENTIALS_FILE):
         raise HTTPException(400, "credentials.json not found in backend/ folder.")
     flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, scopes=SCOPES)
-    flow.redirect_uri = "http://localhost:8000/auth/callback"
+    flow.redirect_uri = OAUTH_CALLBACK_URL
     url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true")
     with open("oauth_state.json", "w") as f:
         json.dump({"state": state}, f)
@@ -93,7 +94,7 @@ def auth_login():
 @app.get("/auth/callback")
 def auth_callback(code: str, state: str):
     flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, scopes=SCOPES)
-    flow.redirect_uri = "http://localhost:8000/auth/callback"
+    flow.redirect_uri = OAUTH_CALLBACK_URL
     flow.fetch_token(code=code)
     with open(TOKEN_FILE, "wb") as f:
         pickle.dump(flow.credentials, f)
@@ -112,7 +113,18 @@ async def upload_credentials(file: UploadFile = File(...)):
         # Save as credentials.json in backend folder
         with open(CREDENTIALS_FILE, "wb") as f:
             f.write(content)
-        return {"message": f"Credentials uploaded successfully", "saved_as": CREDENTIALS_FILE}
+        # Delete any stale token to force re-authentication
+        if os.path.exists(TOKEN_FILE):
+            try:
+                os.remove(TOKEN_FILE)
+            except:
+                pass
+        return {
+            "message": "Credentials uploaded successfully",
+            "saved_as": CREDENTIALS_FILE,
+            "status": "ready_to_authenticate",
+            "next_step": "Click 'Connect Gmail' to authenticate"
+        }
     except json.JSONDecodeError:
         raise HTTPException(400, "Invalid JSON file")
     except Exception as e:
@@ -181,7 +193,9 @@ def clear_sent_hashes():
     return {"cleared": True}
 
 # ── Open tracking ─────────────────────────────────────────────────────────────
-TRACKING_PIXEL = """<img src="http://localhost:8000/track/open/{token}" width="1" height="1" style="display:none" />"""
+def get_tracking_pixel(token: str) -> str:
+    """Generate tracking pixel URL dynamically based on backend URL"""
+    return f"""<img src="{BACKEND_URL}/track/open/{token}" width="1" height="1" style="display:none" />"""
 
 def load_tracking() -> dict:
     if os.path.exists(TRACKING_FILE):
@@ -286,7 +300,7 @@ def build_message(sender: str, to: str, subject: str, body: str, is_html: bool,
     alt = MIMEMultipart("alternative")
     final_body = body
     if is_html and tracking_token:
-        pixel = TRACKING_PIXEL.format(token=tracking_token)
+        pixel = get_tracking_pixel(tracking_token)
         final_body = body + pixel
     content_type = "html" if is_html else "plain"
     alt.attach(MIMEText(final_body, content_type, "utf-8"))
