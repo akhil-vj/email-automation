@@ -1570,7 +1570,6 @@ function Templates({ toast, setTab, setComposeDraft, setEdit, templates, setTemp
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 function Settings({ auth, setAuth, toast, themeMode, setThemeMode }) {
-  const { dark, setDark } = useTheme();
   const credsRef = useRef();
   const handleCredsUpload = async (file) => {
     try {
