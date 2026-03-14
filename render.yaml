@@ -1,0 +1,11 @@
+services:
+- type: web
+  name: email-automation-api
+  runtime: python
+  pythonVersion: 3.11
+  buildCommand: |
+    pip install --upgrade pip setuptools wheel && \
+    pip install --only-binary :all: -r backend/requirements.txt || \
+    pip install -r backend/requirements.txt
+  startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+  memoryMB: 512
