@@ -3,10 +3,11 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy requirements
-COPY backend/requirements.txt requirements.txt
+COPY backend/requirements.txt .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies with binary wheels only
+RUN pip install --upgrade pip && \
+    pip install --prefer-binary -r requirements.txt
 
 # Copy backend code
 COPY backend/ ./backend
