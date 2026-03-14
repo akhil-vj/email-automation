@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback, createContext, useContext } f
 import CONFIG from "./config";
 
 const ThemeCtx = createContext();
-const useTheme = () => useContext(ThemeCtx);
 
 const API = CONFIG.API_URL;
 
