@@ -27,6 +27,7 @@ ALLOWED_ORIGINS = [
     "http://localhost:3000",      # React local dev
     "http://localhost:5173",      # Vite local dev
     "http://localhost:8000",      # Backend local (for testing)
+    "https://qcemailautomation.netlify.app",  # Production frontend
 ]
 
 # Add frontend URL if set in environment
