@@ -2352,7 +2352,11 @@ function createGalaxyHelpers(canvasRef, dbRef, starRef, flashRef, galaxyDataRef,
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [dark,setDark]           = useState(()=>window.matchMedia?.("(prefers-color-scheme: dark)").matches??false);
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved !== null) return saved === "dark";
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  });
   const [tab,setTab]             = useState("dashboard");
   const [auth,setAuth]           = useState(null);
   const [contacts,setContacts]   = useState([]);
@@ -2392,6 +2396,10 @@ export default function App() {
     setEditingTemplate(template);
     setTab("compose");
   };
+
+  useEffect(() => {
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }, [dark]);
 
   useEffect(()=>{
     api("/auth/status").then(setAuth).catch(()=>setAuth({authenticated:false}));
