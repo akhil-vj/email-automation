@@ -1569,7 +1569,7 @@ function Templates({ toast, setTab, setComposeDraft, setEdit, templates, setTemp
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
-function Settings({ auth, setAuth, toast }) {
+function Settings({ auth, setAuth, toast, themeMode, setThemeMode }) {
   const { dark, setDark } = useTheme();
   const credsRef = useRef();
   const handleCredsUpload = async (file) => {
@@ -1651,11 +1651,22 @@ function Settings({ auth, setAuth, toast }) {
         <div className="sec-title" style={{marginBottom:16}}>Appearance</div>
         <div className="row" style={{justifyContent:"space-between"}}>
           <div>
-            <div style={{fontWeight:600,color:"var(--text)",fontSize:14}}>Dark Mode</div>
-            <div style={{fontSize:12,color:"var(--text3)",marginTop:2}}>Toggle between light and dark theme</div>
+            <div style={{fontWeight:600,color:"var(--text)",fontSize:14}}>Theme</div>
+            <div style={{fontSize:12,color:"var(--text3)",marginTop:2}}>
+              {themeMode === "system" && "System (follows OS)"}
+              {themeMode === "light" && "Light mode"}
+              {themeMode === "dark" && "Dark mode"}
+            </div>
           </div>
-          <button className="toggle" onClick={()=>setDark(d=>!d)} style={{background:dark?"var(--accent)":"var(--bg4)"}}>
-            <div className="toggle-t" style={{transform:dark?"translateX(20px)":"translateX(0)"}}/>
+          <button className="btn" onClick={() => {
+            const modes = ["system", "light", "dark"];
+            const currentIndex = modes.indexOf(themeMode);
+            const nextMode = modes[(currentIndex + 1) % modes.length];
+            setThemeMode(nextMode);
+          }} style={{minWidth:100,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {themeMode === "system" && <><Ic p={I.globe} s={14} style={{marginRight:6}}/> System </>}
+            {themeMode === "light" && <><Ic p={I.sun} s={14} style={{marginRight:6}}/> Light </>}
+            {themeMode === "dark" && <><Ic p={I.moon} s={14} style={{marginRight:6}}/> Dark </>}
           </button>
         </div>
       </div>
@@ -2352,13 +2363,21 @@ function createGalaxyHelpers(canvasRef, dbRef, starRef, flashRef, galaxyDataRef,
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 export default function App() {
+  // Theme mode: "system", "light", or "dark"
+  const [themeMode, setThemeMode] = useState(() => {
+    const saved = localStorage.getItem("themeMode");
+    return saved || "system"; // default to system
+  });
+
+  // Actual dark state based on mode
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved !== null) return saved === "dark";
-    // Detect system theme preference
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    // If no preference detected, default to light mode
-    return prefersDark ?? false;
+    const saved = localStorage.getItem("themeMode");
+    const mode = saved || "system";
+    
+    if (mode === "dark") return true;
+    if (mode === "light") return false;
+    // system mode: detect from OS
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
   const [tab,setTab]             = useState("dashboard");
   const [auth,setAuth]           = useState(null);
@@ -2401,8 +2420,21 @@ export default function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem("theme", dark ? "dark" : "light");
-    // Apply or remove dark class from document
+    localStorage.setItem("themeMode", themeMode);
+    
+    // Update dark state based on themeMode
+    if (themeMode === "dark") {
+      setDark(true);
+    } else if (themeMode === "light") {
+      setDark(false);
+    } else {
+      // system mode: detect from OS
+      setDark(window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
+    }
+  }, [themeMode]);
+
+  // Apply dark class to document
+  useEffect(() => {
     if (dark) {
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark');
@@ -2412,16 +2444,18 @@ export default function App() {
     }
   }, [dark]);
 
-  // Initialize theme on mount
+  // Listen for system theme changes when in system mode
   useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
-  }, []);
+    if (themeMode !== "system") return;
+    
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => {
+      setDark(e.matches);
+    };
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [themeMode]);
 
   useEffect(()=>{
     api("/auth/status").then(setAuth).catch(()=>setAuth({authenticated:false}));
@@ -2552,7 +2586,7 @@ export default function App() {
   const titles={dashboard:"Dashboard",compose:"Compose Email",contacts:"Contacts",templates:"Templates",history:"Campaign History",settings:"Settings"};
 
   return (
-    <ThemeCtx.Provider value={{dark,setDark}}>
+    <ThemeCtx.Provider value={{dark,setDark,themeMode,setThemeMode}}>
       <GS dark={dark}/>
       <div className="app" ref={dbRef} style={{position:'relative'}}>
         <canvas id="spaceCanvas" ref={canvasRef} style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',zIndex:0,pointerEvents:'none'}}></canvas>
@@ -2636,7 +2670,7 @@ export default function App() {
             {tab==="contacts"   && <Contacts contacts={contacts} setContacts={setContacts} toast={toast}/>}
             {tab==="templates"  && <Templates toast={toast} setTab={setTab} setComposeDraft={setComposeDraft} setEdit={setEdit} templates={templates} setTemplates={setTemplates}/>}
             {tab==="history"    && <History campaigns={campaigns} setCampaigns={setCampaigns} toast={toast}/>}
-            {tab==="settings"   && <Settings auth={auth} setAuth={setAuth} toast={toast}/>}
+            {tab==="settings"   && <Settings auth={auth} setAuth={setAuth} toast={toast} themeMode={themeMode} setThemeMode={setThemeMode}/>}
           </div>
         </div>
         <Toasts toasts={toasts} remove={remove}/>
