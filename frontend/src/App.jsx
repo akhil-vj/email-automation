@@ -2693,7 +2693,15 @@ export default function App() {
             <div className="tb-title">{titles[tab]}</div>
             <div className="row">
               {tab==="contacts"&&contacts.length>0&&<span className="badge b-green">{contacts.length} contacts</span>}
-              <button className="bti" onClick={()=>setDark(d=>!d)}><Ic p={dark?I.sun:I.moon} s={15}/></button>
+              <button className="bti" onClick={() => {
+                const modes = [null, "light", "dark"];
+                const currentIndex = modes.indexOf(themeMode);
+                const nextMode = modes[(currentIndex + 1) % modes.length];
+                console.log("Header theme button clicked - current:", themeMode, "next:", nextMode);
+                setThemeMode(nextMode);
+              }} title={themeMode === null ? "System" : themeMode === "light" ? "Light" : "Dark"}>
+                <Ic p={themeMode === null ? I.globe : dark ? I.sun : I.moon} s={15}/>
+              </button>
               {tab!=="compose"&&(
                 <button className="btn btn-p" style={{fontSize:12}} onClick={()=>setTab("compose")}>
                   <Ic p={I.compose} s={13}/>New Email
