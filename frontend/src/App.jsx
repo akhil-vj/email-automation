@@ -1652,18 +1652,18 @@ function Settings({ auth, setAuth, toast, themeMode, setThemeMode }) {
           <div>
             <div style={{fontWeight:600,color:"var(--text)",fontSize:14}}>Theme</div>
             <div style={{fontSize:12,color:"var(--text3)",marginTop:2}}>
-              {themeMode === "system" && "System (follows OS)"}
+              {themeMode === null && "System (follows OS)"}
               {themeMode === "light" && "Light mode"}
               {themeMode === "dark" && "Dark mode"}
             </div>
           </div>
           <button className="btn" onClick={() => {
-            const modes = ["system", "light", "dark"];
+            const modes = [null, "light", "dark"];
             const currentIndex = modes.indexOf(themeMode);
             const nextMode = modes[(currentIndex + 1) % modes.length];
             setThemeMode(nextMode);
           }} style={{minWidth:100,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            {themeMode === "system" && <><Ic p={I.globe} s={14} style={{marginRight:6}}/> System </>}
+            {themeMode === null && <><Ic p={I.globe} s={14} style={{marginRight:6}}/> System </>}
             {themeMode === "light" && <><Ic p={I.sun} s={14} style={{marginRight:6}}/> Light </>}
             {themeMode === "dark" && <><Ic p={I.moon} s={14} style={{marginRight:6}}/> Dark </>}
           </button>
@@ -2362,25 +2362,25 @@ function createGalaxyHelpers(canvasRef, dbRef, starRef, flashRef, galaxyDataRef,
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  // Theme mode: "system", "light", or "dark"
+  // Theme mode: null (system), "light", or "dark"
+  // null = system mode (don't store in localStorage)
+  // "light"/"dark" = manual override (store in localStorage)
   const [themeMode, setThemeMode] = useState(() => {
     const saved = localStorage.getItem("themeMode");
-    return saved || "system"; // default to system
+    // Only return manual choices, "system" goes to null
+    return saved === "light" ? "light" : saved === "dark" ? "dark" : null;
   });
 
-  // Actual dark state based on mode
+  // Actual dark state - always computed from system preference or manual choice
   const [dark, setDark] = useState(() => {
-    // Clear old theme key if it exists
-    localStorage.removeItem("theme");
-    
     const saved = localStorage.getItem("themeMode");
-    const mode = saved || "system";
     
-    if (mode === "dark") return true;
-    if (mode === "light") return false;
-    // system mode: detect from OS
+    if (saved === "dark") return true;
+    if (saved === "light") return false;
+    
+    // Default to system preference
     const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
-    console.log("System theme detected - prefersDark:", prefersDark);
+    console.log("Initializing - system prefersDark:", prefersDark);
     return prefersDark;
   });
   const [tab,setTab]             = useState("dashboard");
@@ -2423,17 +2423,22 @@ export default function App() {
     setTab("compose");
   };
 
+  // Update dark state based on themeMode and manage localStorage
   useEffect(() => {
-    localStorage.setItem("themeMode", themeMode);
-    
-    // Update dark state based on themeMode
-    if (themeMode === "dark") {
+    if (themeMode === null) {
+      // System mode - don't store, listen to system changes
+      localStorage.removeItem("themeMode");
+      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+      console.log("Switched to system mode - prefersDark:", prefersDark);
+      setDark(prefersDark);
+    } else if (themeMode === "dark") {
+      localStorage.setItem("themeMode", "dark");
+      console.log("Switched to dark mode");
       setDark(true);
-    } else if (themeMode === "light") {
-      setDark(false);
     } else {
-      // system mode: detect from OS
-      setDark(window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
+      localStorage.setItem("themeMode", "light");
+      console.log("Switched to light mode");
+      setDark(false);
     }
   }, [themeMode]);
 
@@ -2472,17 +2477,28 @@ export default function App() {
     }
   }, []);
 
-  // Listen for system theme changes when in system mode
+  // Listen for system theme changes when in system mode (themeMode === null)
   useEffect(() => {
-    if (themeMode !== "system") return;
+    if (themeMode !== null) return; // Only listen when in system mode
     
+    console.log("System mode listener active");
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    
     const handleChange = (e) => {
+      console.log("System theme changed - dark:", e.matches);
       setDark(e.matches);
     };
     
+    // Modern browsers
     mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    
+    // Fallback for older browsers
+    mediaQuery.addListener?.(handleChange);
+    
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+      mediaQuery.removeListener?.(handleChange);
+    };
   }, [themeMode]);
 
   useEffect(()=>{
