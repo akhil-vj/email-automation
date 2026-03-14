@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1704067200000",
+    "name": "Maldives Holiday Promotion",
+    "subject": "Exclusive: {{destination}} Package for {{company}} — {{nights}}N/{{pax}}P",
+    "body": "Dear {{name}},\n\nWe are excited to present our exclusive {{destination}} package, curated especially for {{company}}.\n\n🏝️ **{{package_name}}**\n• Duration: {{nights}} nights\n• Guests: {{pax}} travellers\n• Starting from: {{price}} per person\n• Travel Date: {{travel_date}}\n\nThis offer includes luxury accommodations, guided tours, and exclusive activities. Perfect for {{segment}} clients looking for an unforgettable experience.\n\nWould you like us to send the detailed itinerary?\n\nWarm regards,\n[Your Name]\n[DMC Name]",
+    "category": "itinerary"
+  },
+  {
+    "id": "1704067300000",
+    "name": "Winter Adventure Special",
+    "subject": "Last Minute Deal: {{destination}} Adventure — Save up to 25%",
+    "body": "Hi {{name}},\n\nOne final reminder: Our {{destination}} adventure packages are available at special early-bird rates until [date].\n\n⛷️ {{package_name}} — {{nights}} nights, {{pax}} guests\nOnly {{price}} per person!\n\nPerfect for {{segment}} groups and corporate retreats.\n\nSecure your spot today:\n[BOOKING LINK]\n\nBest,\n[Your Name]",
+    "category": "promotion"
+  },
+  {
+    "id": "1704067400000",
+    "name": "Weekly Newsletter Template",
+    "subject": "Weekly Travel Updates: What's New in {{destination}}",
+    "body": "Hello {{name}},\n\nHope you're having a great week! Here's this week's curated travel updates:\n\n📰 **Industry News**\n- New hotel openings in {{destination}}\n- Updated visa requirements\n- Market trends for {{segment}} segment\n\n🎯 **Trending Packages**\n- {{package_name}} — Now available from {{price}}\n- Limited slots remaining for {{travel_date}}\n\n💡 **Travel Tips**\nBest time to visit {{destination}}: [Month]\nLanguage: [Local]\n\nHave questions? Reply to this email or visit our website.\n\nHappy travels!\n[Your DMC Team]",
+    "category": "newsletter"
+  },
+  {
+    "id": "1704067500000",
+    "name": "Post-Trip Feedback",
+    "subject": "How was your {{destination}} experience with {{company}}?",
+    "body": "Dear {{name}},\n\nThank you for choosing our services for your recent {{package_name}} trip to {{destination}}!\n\nWe'd love to hear about your experience:\n\n⭐ [FEEDBACK SURVEY - 2 MIN]\n\nYour feedback helps us:\n• Improve our services\n• Recommend activities to other clients\n• Share success stories\n\nAs a thank you, respondents get 10% off their next booking.\n\nBest regards,\n[Your Name]\n[Your DMC]",
+    "category": "followup"
+  },
+  {
+    "id": "1704067600000",
+    "name": "MICE Event Proposal",
+    "subject": "Customized {{destination}} Event for {{company}} — {{pax}} Guests",
+    "body": "Dear {{name}},\n\nWe specialize in corporate events for companies like {{company}}.\n\nFor your {{pax}}-person event in {{destination}}:\n\n✓ Venue sourcing & logistics\n✓ Team-building activities\n✓ Transportation & accommodation\n✓ 24/7 event coordination\n\nWe've successfully hosted events for Fortune 500 companies in the {{segment}} segment.\n\nLet's schedule a call to discuss your requirements.\n\nRegards,\n[Your Name]\n[MICE Team]",
+    "category": "general"
+  }
+]
